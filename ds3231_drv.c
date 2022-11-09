@@ -22,6 +22,95 @@
 # define DS3231_BIT_OSF		0x80
 
 
+/* CHANGES HERE*/
+ 
+static dev_t mein_first_dev;
+static struct cdev mein_cdev;
+static struct class *mein_device_class;
+
+static struct file_operations mein_fops = 
+{
+	.open= mein_open,
+	.release= mein_release,
+	.read= mein_read,
+	.write= mein_write
+};
+
+static int __init mein_treiber_init(void)
+{
+	int ret;
+
+	/*
+	 * Gerätenummer für 1 Gerät allozieren
+	 */
+
+	ret = alloc_chrdev_region(&mein_first_dev, 0, 1, "mein_treiber");
+	if(ret < 0) {
+		printk(KERN_ALERT "Fehler bei alloc_chrdev_region()\n");
+		return ret;
+	}
+
+	/*
+	 * cdev-Struktur initialisieren und dem Kernel bekannt machen
+	 */
+	cdev_init(&mein_cdev, &mein_fops);
+	ret = cdev_add(&mein_cdev, mein_first_dev, 1);
+	if(ret < 0) {
+		printk(KERN_ALERT "Fehler bei Registrierung von CDEV-Struktur");
+		goto unreg_chrdev;
+	}
+
+	/*
+	 *Eintrag im sysfs registrieren. Dadurch wird die Device-Datei automatisch von udev Dienst erstellt.
+	 */
+	mein_device_class = class_create(THIS_MODULE, "chardev");
+	if(mein_device_class == NULL) {
+		printk(KERN_ALERT "Class konnte nicht erstellt werden.\n");
+		goto clenup_cdev;
+	}
+
+	if(device_create(mein_device_class,
+			 NULL,
+			 mein_first_dev,
+			 NULL,
+			 "mein_treiber") == NULL) {
+		printk(KERN_ALERT "Device konnte nicht erstellt werden.\n");
+		goto cleanup_chrdev_class;
+	}
+	
+	/*
+	 * mein_treiber wurde erfolgreich initialisert
+	 */
+	return 0;
+
+	/*
+	 * Resourcen freigeben und Fehler melden
+	 */
+	cleanup_chrdev_class:
+	  class_destroy(mein_device_class);
+	clenup_cdev:
+	  cdev_del(&mein_cdev);
+	unreg_chrdev:
+	  unregister_chrdev_region(mein_first_dev, 1);
+	 
+	return 0;
+}
+
+static void __exit mein_treiber_exit(void)
+{
+	printk("Treiber entladen\n");
+	device_destroy(mein_device_class, mein_first_dev);
+	class_destroy(mein_device_class);
+	cdev_del(&mein_cdev);
+	unregister_chrdev_region(mein_first_dev, 1);
+}
+
+
+
+ /*CHANGES HERE*/
+
+
+
 /*
  * Der Zeiger wird bei Initialisierung gesetzt und wird für die
  * i2c Kommunikation mit dem  Device (DS3231) benötigt.
