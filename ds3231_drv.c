@@ -28,13 +28,6 @@ static dev_t mein_first_dev;
 static struct cdev mein_cdev;
 static struct class *mein_device_class;
 
-static struct file_operations mein_fops = 
-{
-	.open= mein_open,
-	.release= mein_close,
-	.read= mein_read,
-	.write= mein_write
-};
 
 static int mein_open(struct inode *inode, struct file *file) {
     return 0;
@@ -53,6 +46,13 @@ static ssize_t mein_write(struct file *file, char __user *puffer, size_t bytes, 
     copy_from_user(string, puffer, bytes);
     return bytes;
 }
+
+static struct file_operations mein_fops = {
+        .open= mein_open,
+        .release= mein_close,
+        .read= mein_read,
+        .write= mein_write
+};
 
 static int __init mein_treiber_init(void)
 {
