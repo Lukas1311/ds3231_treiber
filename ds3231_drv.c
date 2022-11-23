@@ -106,6 +106,33 @@ static void __exit mein_treiber_exit(void)
 }
 
 
+static int mein_open(struct inode *inode, struct file *file)
+{
+	return 0;  //Zugriffschutz beachten
+}
+
+static int mein_close(struct inode *inode, struct file *file) 
+{
+	return 0; //Zugriffschutz beachten
+}
+
+static ssize_t mein_read(struct file *file,
+			 char __user* puffer,
+			 size_t bytes,
+			 loff_t *offset)
+{
+	count = copy_to_user(puffer, string, N);
+	return N -count;
+}
+
+static ssize_t mein_write(struct file *file,
+			  const char __user* puffer,
+			  size_t bytes,
+			  loff_t *offset)
+{
+	copy_from_user(string, puffer, bytes);
+	return bytes;
+}
 
  /*CHANGES HERE*/
 
