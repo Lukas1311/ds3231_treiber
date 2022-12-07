@@ -20,3 +20,16 @@
 #define DS3231_BIT_A1IE	   0x01
 #define DS3231_REG_STATUS  0x0f
 #define DS3231_BIT_OSF     0x80
+
+
+/*
+ * Funktionsdeklaration
+ */
+
+static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset);
+
+static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset);
+
+static int mein_open(struct inode *inode, struct file *file);
+
+static int mein_close(struct inode *inode, struct file *file);

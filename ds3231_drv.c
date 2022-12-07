@@ -9,7 +9,7 @@
 
 *******************************************************************************
 * Author-2 : Alexander Haar
-* Matrikelnummer-2 : ???
+* Matrikelnummer-2 : 35679594
 *******************************************************************************
 * Beschreibung: Linux Treiber für RTC-DS3231
 * Version: 1.0
@@ -18,7 +18,6 @@
 #include "ds3231_drv.h"
 
 /* CHANGES HERE*/
-
 
 /*
  *File Operations für die Registrierung der Funktionen und das Modul
@@ -30,6 +29,36 @@ static struct file_operations mein_fops = {
         .open = mein_open,
         .release = mein_close,
 };
+
+/*
+ * Gibt dem Nutzer die ausgelesene Uhrzeit zurück
+ */
+static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset) {
+    return 0;
+}
+
+/*
+ * Liest Nutzereingaben und speichert die Eingaben in der jeweiligen Datenstruktur
+ */
+static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
+    return 0;
+}
+
+/*
+ * Öffnet den Treiber
+ */
+static int mein_open(struct inode *inode, struct file *file) {
+    return 0;
+}
+
+/*
+ * Schließt den Treiber
+ */
+static int mein_close(struct inode *inode, struct file *file) {
+    return 0;
+}
+
+
 
 
 
@@ -210,6 +239,6 @@ module_exit(ds3231_module_exit);
 
 
 /* Module-Informationen. */
-MODULE_AUTHOR("Lukas Nils Lingmann uk083418@student.uni-kassel.de, Alexander Haar uk...@stundent.uni-kassel.de");
+MODULE_AUTHOR("Lukas Nils Lingmann uk083418@student.uni-kassel.de, Alexander Haar uk077258@stundent.uni-kassel.de");
 MODULE_DESCRIPTION("Beschreibung");
 MODULE_LICENSE("GPL");
