@@ -57,9 +57,71 @@ static int mein_open(struct inode *inode, struct file *file) {
 static int mein_close(struct inode *inode, struct file *file) {
     return 0;
 }
+/*
+ * Die ID wird für die Zuordnung des Treibers zum Gerät benötigt.
+ */
+static const struct i2c_device_id ds3231_dev_id[] = {
+        {"ds3231_drc", 0},
+        {}
+};
 
+MODULE_DEVICE_TABLE(i2c, ds3231_dev_id);
 
+/*
+ *  struct i2c_driver wird benötigt, damit der Treiber sich im Linux-Kernel registrieren kann.
+ */
+static struct i2c_driver ds3231_driver = {
+        .driver = {
+                .owner = THIS_MODULE,
+                .name = "ds3231_drv",
+        },
+        .id_table = ds3231_dev_id,
+        .probe = ds3231_probe,
+        .remove = ds3231_remove,
+};
 
+static int date_check(ds3231_time_t* time) {
+    uint8_t val = 0;
+
+    /*
+     * Überprüfung auf Gültigkeit des Datums
+     */
+    if (time -> years < 2000 || time -> years > 2100) {
+        val = 2;
+    } else if (time -> seconds < 0 || time -> seconds > 59) {
+        val = 1;
+    } else if (time -> minutes < 0 || time -> minutes > 59) {
+        val = 1;
+    } else if (time -> hours < 0 || time -> hours > 23) {
+        val = 1;
+    } else if (time -> days < 1 || time -> days > 31) {
+        val = 1;
+    } else if (time -> months < 1 || time -> months > 12) {
+        val = 1;
+    } else {
+        int i = time -> months;
+        switch (i) {
+            /*
+             * Wenn Februar, dann teste auf Schaltjahr, da days = 29;
+             */
+            case 2:
+                if ((time -> years % 4 == 0) && (time -> years % 400 == 0) || (time -> years % 100 != 0)) {
+                    if (time -> days > 29) {
+                        val = 1;
+                    }
+                } else if (time -> days > 28) {
+                    val = 1;
+                }
+                break;
+            case 4,6,9,11:
+                if (time -> days > 30) {
+                    val = 1;
+                }
+                break;
+        }
+    }
+    return val;
+}
 
 static int mein_open(struct inode *inode, struct file *file)
 {
