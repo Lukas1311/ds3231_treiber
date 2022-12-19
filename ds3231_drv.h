@@ -23,7 +23,7 @@
 
 
 /*
- * Funktionsdeklaration
+ * Funktionsdefinition
  */
 
 static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset);
