@@ -122,6 +122,12 @@ static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, l
     uint16_t years;
     ds3231_time_t time;
 
+    /* Zwischenspeicherung des Status des RTC-Chips */
+    ds3231_status_t status;
+
+    /* zu lesenden Bytes */
+    ssize_t count;
+
     /* char-Array für Datumsausgabe */
     char date[30];
 
@@ -134,6 +140,84 @@ static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, l
     }
 
     printk("DS3231_drv: mein_read aufgerufen\n");
+
+    /* Reserviere den Datenbus.
+    * Rückgabewert 1, falls ein Lock erfolgreich zugewiesen wurde.
+    * Rückgabewert 0, falls der Datenbus noch besetzt ist.
+    */
+    ret = spin_trylock(&the_lock);
+
+    /* Überprüfung, ob Datenbus besetzt */
+    if (!ret) {
+        return -EBUSY;
+    }
+
+    /* Auslesung des Status */
+    status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_STATUS);
+    status.osf = status.full & DS3231_OSFBIT;
+    status.bsy = status.full & DS3231_BSYBIT;
+    status.temp = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_TEMP);
+
+    /* Überprüfung, ob Oszillator deaktiviert.
+     * Wenn Oszillator deaktiviert, dann aktiviere ihn und gib Fehlermeldung aus.
+     */
+    if ((status.osf >> 7) == 1) {
+        status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_CONTROL);
+        i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_CONTROL, (status.full | DS3231_BIT_nEOSC));
+        i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_STATUS, (status.full & ~DS3231_OSFBIT));
+        printk("DS3231: Oszillator ist deaktiviert.\n\n Aktivierung des Oszillators gestartet.\n");
+        return -EAGAIN;
+
+    /* Temperaturprüfung */
+    } else if (status.temp < -40 || status.temp > 85) {
+        printk("DS3231: ACHTUNG! Temperatur liegt außerhalb des Arbeitsbereichs!\n");
+    }
+
+    /* Auslesen und Abspeicherung der Uhrzeit-Werte */
+    seconds = i2c_smbus_read_byte_data(ds3231_client, DS3231_SECONDS);
+    minutes = i2c_smbus_read_byte_data(ds3231_client, DS3231_MINUTES);
+    hours = i2c_smbus_read_byte_data(ds3231_client, DS3231_HOURS);
+    days = i2c_smbus_read_byte_data(ds3231_client, DS3231_DAYS);
+    months = i2c_smbus_read_byte_data(ds3231_client, DS3231_MONTHS);
+    years = i2c_smbus_read_byte_data(ds3231_client, DS3231_YEARS);
+
+    /* Freigabe des Datenbusses */
+    spin_unlock(&the_lock);
+
+    /* Darstellug von BCD → BIN */
+    time.seconds = bcd2bin(seconds & DS3231_SECSBITS);
+    time.minutes = bcd2bin(minutes & DS3231_MINSBITS);
+    time.days    = bcd2bin(days & DS3231_DAYSBITS);
+    time.months  = bcd2bin(months & DS3231_MONTHSBITS);
+    time.hours   = bcd2bin(hours & DS3231_HRSBITS);
+    /* +2000, damit Jahr richtig dargestellt wird */
+    time.years   = bcd2bin(years & DS3231_YEARSBITS) + 2000;
+
+    /* Gültigkeitsprüfung des Datums */
+    val = date_check(&time);
+
+    /* Fehlermeldung für ungültige Daten */
+    if (val == 1) {
+        return -ENOEXEC;
+    } else if (val == 2) {
+        return -EOVERFLOW;
+    }
+
+    /* Speicherung der Uhrzeit-Werte */
+    scnprintf(date, sizeof(date), "%02d. %s %02d:%02d:%02d %04d\n",
+              time.days, list_of_months[time.months - 1], time.hours,
+              time.minutes, time.seconds, time.years);
+
+    /* Anzahl bytes, die ausgegeben werden */
+    count = strlen(date);
+
+    /* Ausgabe und Rückgabe der nicht gelesenen Bytes */
+    bytes = copy_to_user(puffer, date, count);
+
+    /* Wurde bereits gelesen, muss nicht mehr gemacht werden */
+    *offset = ~bytes;
+
+    return count;
 }
 
 /*
