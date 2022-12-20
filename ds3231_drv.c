@@ -24,39 +24,13 @@
  */
 static struct file_operations mein_fops = {
         .owner = THIS_MODULE,
+        .llseek = no_llseek,
         .read = mein_read,
         .write = mein_write,
         .open = mein_open,
         .release = mein_close,
 };
 
-/*
- * Gibt dem Nutzer die ausgelesene Uhrzeit zurück
- */
-static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset) {
-    return 0;
-}
-
-/*
- * Liest Nutzereingaben und speichert die Eingaben in der jeweiligen Datenstruktur
- */
-static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
-    return 0;
-}
-
-/*
- * Öffnet den Treiber
- */
-static int mein_open(struct inode *inode, struct file *file) {
-    return 0;
-}
-
-/*
- * Schließt den Treiber
- */
-static int mein_close(struct inode *inode, struct file *file) {
-    return 0;
-}
 /*
  * Die ID wird für die Zuordnung des Treibers zum Gerät benötigt.
  */
@@ -121,6 +95,63 @@ static int date_check(ds3231_time_t* time) {
         }
     }
     return val;
+}
+
+/*
+ * Öffnet den Treiber
+ */
+static int mein_open(struct inode *inode, struct file *file) {
+    printk("DS3231_drv: mein_open aufgerufen\n");
+    return 0;
+}
+
+/*
+ * Schließt den Treiber
+ */
+static int mein_close(struct inode *inode, struct file *file) {
+    printk("DS3231_drv: mein_close aufgerufen\n");
+    return 0;
+}
+
+/*
+ * Gibt dem Nutzer die ausgelesene Uhrzeit zurück
+ */
+static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset) {
+    /* Zwischenspeicher für die Uhrzeit */
+    uint8_t seconds, minutes, hours, days, months, ret, val;
+    uint16_t years;
+    ds3231_time_t time;
+
+    /* char-Array für Datumsausgabe */
+    char date[30];
+
+    char *months_list[12] {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+
+    /* Wenn bereits eine Ausgabe erfolgt ist, dann mein_write verlassen. */
+    if (*offset != 0) {
+        *offset = 0;
+        return 0;
+    }
+
+    printk("DS3231_drv: mein_read aufgerufen\n");
+}
+
+/*
+ * Liest Nutzereingaben und speichert die Eingaben in der jeweiligen Datenstruktur
+ */
+static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
+   /* Zwischenspeicher für die Uhrzeit */
+   ds3231_time_t time;
+
+   /* char-Array für Datumseingabe */
+   char input[30];
+
+   /* Wenn Eingabe >= 30, dann gib Fehlermeldung aus */
+   if (bytes >= 30) {
+       return -EOVERFLOW;
+   }
+
+   printk("DS3231_drv: mein_write aufgerufen\n");
 }
 
 

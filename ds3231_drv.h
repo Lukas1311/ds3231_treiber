@@ -21,10 +21,42 @@
 #define DS3231_REG_STATUS  0x0f
 #define DS3231_BIT_OSF     0x80
 
+/* Datum und Uhrzeit Definition */
+#define DS3231_SECONDS		0x00
+#define DS3231_MINUTES		0x01
+#define DS3231_HOURS		0x02
+#define DS3231_DAYS		    0x03
+#define DS3231_DATE		    0x04
+#define DS3231_MONTHS		0x05
+#define DS3231_YEARS		0x06
 
-/*
- * Funktionsdefinition
- */
+/* Definitonen für das Auslesen der Uhrzeit */
+#define DS3231_SECSBITS     0b01111111
+#define DS3231_MINSBITS     0b01111111
+#define DS3231_HRSBITS      0b00111111
+#define DS3231_12n24        0b01000000
+#define DS3231_DAYSBITS     0b00111111
+#define DS3231_MONTHSBITS   0b00011111
+#define DS3231_CENTURYBITS  0b10000000
+#define DS3231_YEARSBITS    0b11111111
+
+/* Definitonen für das Auslesen des Status des RTC-Chips */
+#define DS3231_OSFBIT       0b10000000
+#define DS3231_BSYBIT       0b00000100
+
+/* Struktur zur Speicherung und Übergeben der Uhrzeit */
+typedef struct time {
+    uint16_t seconds, minutes, hours, months, days;
+    uint32_t years;
+} ds3231_time_t;
+
+/* Struktur zur Speicherung und Übergeben des Status des RTC-Chips */
+typedef struct status {
+    uint8_6 osf, bsy, full;
+    int8_t temp;
+} ds3231_status_t;
+
+/* Funktionsdefinition */
 
 static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset);
 
