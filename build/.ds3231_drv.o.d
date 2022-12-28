@@ -2,8 +2,9 @@ ds3231_drv.o: /home/sysprog-04/ds3231_treiber/ds3231_drv.c \
  include/linux/compiler-version.h include/linux/kconfig.h \
  include/generated/autoconf.h include/linux/compiler_types.h \
  include/linux/compiler_attributes.h include/linux/compiler-gcc.h \
- include/linux/slab.h include/linux/gfp.h include/linux/mmdebug.h \
- include/linux/bug.h arch/arm/include/asm/bug.h include/linux/linkage.h \
+ /home/sysprog-04/ds3231_treiber/ds3231_drv.h include/linux/slab.h \
+ include/linux/gfp.h include/linux/mmdebug.h include/linux/bug.h \
+ arch/arm/include/asm/bug.h include/linux/linkage.h \
  include/linux/compiler_types.h include/linux/stringify.h \
  include/linux/export.h arch/arm/include/asm/linkage.h \
  include/linux/types.h include/uapi/linux/types.h \
