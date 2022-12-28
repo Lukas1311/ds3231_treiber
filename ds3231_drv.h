@@ -20,6 +20,7 @@
 #define DS3231_BIT_A1IE	   0x01
 #define DS3231_REG_STATUS  0x0f
 #define DS3231_BIT_OSF     0x80
+#define DS3231_REG_TEMP	   0x11
 
 /* Datum und Uhrzeit Definition */
 #define DS3231_SECONDS		0x00

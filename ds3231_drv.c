@@ -39,8 +39,7 @@ static const struct i2c_device_id ds3231_dev_id[] = {
         {}
 };
 
-MODULE_DEVICE_TABLE(i2c, ds3231_dev_id
-);
+MODULE_DEVICE_TABLE(i2c, ds3231_dev_id);
 
 /*
  *  struct i2c_driver wird benötigt, damit der Treiber sich im Linux-Kernel registrieren kann.
@@ -100,36 +99,6 @@ static int date_check(ds3231_time_t *time) {
     }
     return val;
 }
-
-<<<<<<< HEAD
-static int mein_open(struct inode *inode, struct file *file)
-{
-	return 0;  //Zugriffschutz beachten
-}
-
-static int mein_close(struct inode *inode, struct file *file) 
-{
-	return 0; //Zugriffschutz beachten
-}
-
-static ssize_t mein_read(struct file *file,
-			 char __user* puffer,
-			 size_t bytes,
-			 loff_t *offset)
-{
-	count = copy_to_user(puffer, string, N);
-	return N -count;
-}
-
-static ssize_t mein_write(struct file *file,
-			  const char __user* puffer,
-			  size_t bytes,
-			  loff_t *offset)
-{
-	copy_from_user(string, puffer, bytes);
-	return bytes;
-}
-=======
 /*
  * Öffnet den Treiber
  */
@@ -164,7 +133,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
     /* char-Array für Datumsausgabe */
     char date[30];
 
-    char *months_list[12] {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
+    char *months_list[12] = {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"};
 
     /* Wenn bereits eine Ausgabe erfolgt ist, dann mein_write verlassen. */
     if (*offset != 0) {
@@ -174,10 +143,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 
     printk("DS3231_drv: mein_read aufgerufen\n");
 
-    /* Reserviere den Datenbus.
-    * Rückgabewert 1, falls ein Lock erfolgreich zugewiesen wurde.
-    * Rückgabewert 0, falls der Datenbus noch besetzt ist.
-    */
+    /* Reservierung des Datenbusses .*/
     ret = spin_trylock(&the_lock);
 
     /* Überprüfung, ob Datenbus besetzt */
@@ -238,7 +204,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 
     /* Speicherung der Uhrzeit-Werte */
     scnprintf(date, sizeof(date), "%02d. %s %02d:%02d:%02d %04d\n",
-              time.days, list_of_months[time.months - 1], time.hours,
+              time.days, months_list[time.months - 1], time.hours,
               time.minutes, time.seconds, time.years);
 
     /* Anzahl bytes, die ausgegeben werden */
@@ -406,8 +372,6 @@ static ssize_t mein_write(struct file *file, const char __user* puffer, size_t b
     return bytes;
 }
 
->>>>>>> 6f9b58493028463d33d028b2974cdf68b2abfaa0
-
  /*CHANGES HERE*/
 
 /*
@@ -471,7 +435,7 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
     }
 
     /* Schnittstellen und Datenstrukturen initialisieren */
-    cdev_init(&cds3231_device, &ds3231_fops);
+    cdev_init(&cds3231_device, &mein_fops);
     ret = cdev_add(&cds3231_device, ds3231_device, 1);
     if (ret < 0) {
         printk(KERN_ALERT
