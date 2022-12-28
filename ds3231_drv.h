@@ -52,7 +52,7 @@ typedef struct time {
 
 /* Struktur zur Speicherung und Übergeben des Status des RTC-Chips */
 typedef struct status {
-    uint8_6 osf, bsy, full;
+    uint8_t osf, bsy, full;
     int8_t temp;
 } ds3231_status_t;
 
