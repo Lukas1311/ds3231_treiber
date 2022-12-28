@@ -32,27 +32,30 @@ static struct file_operations mein_fops = {
 };
 
 /*
- * Die ID wird für die Zuordnung des Treibers zum Gerät benötigt.
+ * Device-Id. Wird für die Zuordnung des Treibers zum Gerät benötigt.
+ * Das für den Treiber passendes Gerät mit der hier definierten Id wird
+ * bei der Initialisierung des Moduls hinzugefügt.
  */
 static const struct i2c_device_id ds3231_dev_id[] = {
-        {"ds3231_drc", 0},
-        {}
+        { "ds3231_drv", 0 },
+        { }
 };
-
 MODULE_DEVICE_TABLE(i2c, ds3231_dev_id);
 
 /*
- *  struct i2c_driver wird benötigt, damit der Treiber sich im Linux-Kernel registrieren kann.
+ * I2C Treiber-Struktur. Wird für die Registrierung des Treibers im
+ * Linux-Kernel benötigt.
  */
 static struct i2c_driver ds3231_driver = {
         .driver = {
                 .owner = THIS_MODULE,
-                .name = "ds3231_drv",
+                .name  = "ds3231_drv",
         },
         .id_table = ds3231_dev_id,
-        .probe = ds3231_probe,
-        .remove = mein_remove,
+        .probe	  = ds3231_probe,
+        .remove	  = mein_remove,
 };
+
 
 static int date_check(ds3231_time_t *time) {
     uint8_t val = 0;
@@ -99,6 +102,7 @@ static int date_check(ds3231_time_t *time) {
     }
     return val;
 }
+
 /*
  * Öffnet den Treiber
  */
@@ -143,7 +147,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 
     printk("DS3231_drv: mein_read aufgerufen\n");
 
-    /* Reservierung des Datenbusses .*/
+    /* Reservierung des Datenbusses */
     ret = spin_trylock(&the_lock);
 
     /* Überprüfung, ob Datenbus besetzt */
@@ -204,7 +208,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 
     /* Speicherung der Uhrzeit-Werte */
     scnprintf(date, sizeof(date), "%02d. %s %02d:%02d:%02d %04d\n",
-              time.days, months_list[time.months - 1], time.hours,
+              time.days, list_of_months[time.months - 1], time.hours,
               time.minutes, time.seconds, time.years);
 
     /* Anzahl bytes, die ausgegeben werden */
@@ -479,38 +483,8 @@ static int ds3231_remove(struct i2c_client *client)
     unregister_chrdev_region(ds3231_device, 1);
     return 0;
 }
-
-
-/*
- * Device-Id. Wird für die Zuordnung des Treibers zum Gerät benötigt.
- * Das für den Treiber passendes Gerät mit der hier definierten Id wird
- * bei der Initialisierung des Moduls hinzugefügt.
- */
-static const struct i2c_device_id ds3231_dev_id[] = {
-	{ "ds3231_drv", 0 },
-	{ }
-};
-MODULE_DEVICE_TABLE(i2c, ds3231_dev_id);
-
-
-/*
- * I2C Treiber-Struktur. Wird für die Registrierung des Treibers im
- * Linux-Kernel benötigt.
- */
-static struct i2c_driver ds3231_driver = {
-	.driver = {
-		.owner = THIS_MODULE,
-		.name  = "ds3231_drv",
-	},
-	.id_table = ds3231_dev_id,
-	.probe	  = ds3231_probe,
-	.remove	  = ds3231_remove,
-};
-
-
 /*
  * Initialisierungsroutine des Kernel-Modules.
- * 
  * Wird beim Laden des Moduls aufgerufen. Innerhalb der Funktion
  * wird das neue Device (DS3231) registriert und der I2C Treiber
  * hinzugefügt.
