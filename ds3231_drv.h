@@ -8,9 +8,9 @@
 #include <linux/rtc.h>
 #include <linux/interrupt.h>
 #include <linux/uaccess.h>
+#include <linux/mutex.h>
 #include <asm/errno.h>
 #include <asm/delay.h>
-
 
 /* Register Definitionen */
 #define DS3231_REG_CONTROL 0x0e
@@ -30,7 +30,7 @@
 #define DS3231_MONTHS		0x05
 #define DS3231_YEARS		0x06
 
-/* Definitonen für das Auslesen der Uhrzeit */
+/* Definitionen für das Auslesen der Uhrzeit */
 #define DS3231_SECSBITS     0b01111111
 #define DS3231_MINSBITS     0b01111111
 #define DS3231_HRSBITS      0b00111111
@@ -40,7 +40,7 @@
 #define DS3231_CENTURYBITS  0b10000000
 #define DS3231_YEARSBITS    0b11111111
 
-/* Definitonen für das Auslesen des Status des RTC-Chips */
+/* Definitionen für das Auslesen des Status des RTC-Chips */
 #define DS3231_OSFBIT       0b10000000
 #define DS3231_BSYBIT       0b00000100
 
@@ -65,3 +65,21 @@ static ssize_t mein_write(struct file *file, const char __user* puffer, size_t b
 static int mein_open(struct inode *inode, struct file *file);
 
 static int mein_close(struct inode *inode, struct file *file);
+
+
+static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *id);
+
+static int mein_remove(struct i2c_client *client);
+
+static int date_check(ds3231_time_t* time);
+
+/* Geräte Dateien */
+static dev_t ds3231_device;
+static struct cdev cds3231_device;
+static struct class *ds3231_device_class;
+
+
+static struct i2c_client *ds3231_client;
+
+
+static spinlock_t the_lock;
