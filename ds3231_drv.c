@@ -52,7 +52,7 @@ static struct i2c_driver ds3231_driver = {
         },
         .id_table = ds3231_dev_id,
         .probe = ds3231_probe,
-        .remove = ds3231_remove,
+        .remove = mein_remove,
 };
 
 static int date_check(ds3231_time_t *time) {
@@ -80,7 +80,7 @@ static int date_check(ds3231_time_t *time) {
              * Wenn Februar, dann teste auf Schaltjahr, da days = 29;
              */
             case 2:
-                if ((time->years % 4 == 0) && (time->years % 400 == 0) || (time->years % 100 != 0)) {
+                if ((time->years % 4 == 0) && ((time->years % 400 == 0) || (time->years % 100 != 0))) {
                     if (time->days > 29) {
                         val = 1;
                     }
@@ -88,7 +88,10 @@ static int date_check(ds3231_time_t *time) {
                     val = 1;
                 }
                 break;
-            case 4,6, 9, 11:
+            case 4:
+            case 6:
+            case 9:
+            case 11:
                 if (time->days > 30) {
                     val = 1;
                 }
