@@ -22,13 +22,13 @@
 /*
  *File Operations für die Registrierung der Funktionen und das Modul
  */
-static struct file_operations mein_fops = {
+static struct file_operations ds3231_fops = {
         .owner = THIS_MODULE,
         .llseek = no_llseek,
-        .read = mein_read,
-        .write = mein_write,
-        .open = mein_open,
-        .release = mein_close,
+        .read = ds3231_read,
+        .write = ds3231_write,
+        .open = ds3231_open,
+        .release = ds3231_close,
 };
 
 /*
@@ -53,7 +53,7 @@ static struct i2c_driver ds3231_driver = {
         },
         .id_table = ds3231_dev_id,
         .probe	  = ds3231_probe,
-        .remove	  = mein_remove,
+        .remove	  = ds3231_remove,
 };
 
 
@@ -106,23 +106,23 @@ static int date_check(ds3231_time_t *time) {
 /*
  * Öffnet den Treiber
  */
-static int mein_open(struct inode *inode, struct file *file) {
-    printk("DS3231_drv: mein_open aufgerufen\n");
+static int ds3231_open(struct inode *inode, struct file *file) {
+    printk("DS3231_drv: ds3231_open aufgerufen\n");
     return 0;
 }
 
 /*
  * Schließt den Treiber
  */
-static int mein_close(struct inode *inode, struct file *file) {
-    printk("DS3231_drv: mein_close aufgerufen\n");
+static int ds3231_close(struct inode *inode, struct file *file) {
+    printk("DS3231_drv: ds3231_close aufgerufen\n");
     return 0;
 }
 
 /*
  * Gibt dem Nutzer die ausgelesene Uhrzeit zurück
  */
-static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, loff_t *offset) {
+static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes, loff_t *offset) {
     /* Zwischenspeicher für die Uhrzeit */
     uint8_t seconds, minutes, hours, days, months, ret, val;
     uint16_t years;
@@ -145,7 +145,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
         return 0;
     }
 
-    printk("DS3231_drv: mein_read aufgerufen\n");
+    printk("DS3231_drv: ds3231_read aufgerufen\n");
 
     /* Reservierung des Datenbusses */
     ret = spin_trylock(&the_lock);
@@ -208,7 +208,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 
     /* Speicherung der Uhrzeit-Werte */
     scnprintf(date, sizeof(date), "%02d. %s %02d:%02d:%02d %04d\n",
-              time.days, list_of_months[time.months - 1], time.hours,
+              time.days, months_list[time.months - 1], time.hours,
               time.minutes, time.seconds, time.years);
 
     /* Anzahl bytes, die ausgegeben werden */
@@ -226,7 +226,7 @@ static ssize_t mein_read(struct file *file, char __user * puffer, size_t bytes, 
 /*
  * Liest Nutzereingaben und speichert die Eingaben in der jeweiligen Datenstruktur
  */
-static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
+static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
     /* Zwischenspeicher für die Uhrzeit */
     ds3231_time_t time;
 
@@ -293,7 +293,7 @@ static ssize_t mein_write(struct file *file, const char __user* puffer, size_t b
         status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_CONTROL);
         i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_CONTROL, (status.full | DS3231_BIT_nEOSC));
         i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_STATUS, (status.full & ~DS3231_OSFBIT));
-        printk("DS3231: Oszillator ist nicht aktiviert. Wird jetzt aktiviert.\n");
+        printk("DS3231: Oszillator ist nicht aktiviert.\n\n Aktivierung des Oszillators gestartet.\n");
         return -EAGAIN;
 
     /* Temperaturprüfung */
@@ -355,7 +355,7 @@ static ssize_t mein_write(struct file *file, const char __user* puffer, size_t b
         status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_CONTROL);
         i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_CONTROL, (status.full | DS3231_BIT_nEOSC));
         i2c_smbus_write_byte_data(ds3231_client, DS3231_REG_STATUS, (status.full & ~DS3231_OSFBIT));
-        printk("DS3231: Oszillator ist nicht aktiviert. Wird jetzt aktiviert.\n");
+        printk("DS3231: Oszillator ist nicht aktiviert.\n\n Aktivierung des Oszillators gestartet.\n");
         return -EAGAIN;
 
     /* Temperaturprüfung */
@@ -439,7 +439,7 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
     }
 
     /* Schnittstellen und Datenstrukturen initialisieren */
-    cdev_init(&cds3231_device, &mein_fops);
+    cdev_init(&cds3231_device, &ds3231_fops);
     ret = cdev_add(&cds3231_device, ds3231_device, 1);
     if (ret < 0) {
         printk(KERN_ALERT
@@ -466,6 +466,15 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
     /* DS3231 erfolgreich initialisiert */
 
     return 0;
+
+    /* Fehler melden und Ressourcen freigeben */
+    cleanup_chrdev_class:
+    	class_destroy(ds3231_device_class);
+    cleanup_cdev:
+	cdev_del(&cds3231_device);
+    unreg_chrdev:
+	unregister_chrdev_region(ds3231_device, 1);
+    return -EIO;
 }
 
 /*
@@ -476,7 +485,7 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
  */
 static int ds3231_remove(struct i2c_client *client)
 {
-    printk("DS3231_drv: mein_remove aufgerufen\n");
+    printk("DS3231_drv: ds3231_remove aufgerufen\n");
     device_destroy(ds3231_device_class, ds3231_device);
     class_destroy(ds3231_device_class);
     cdev_del(&cds3231_device);

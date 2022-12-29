@@ -1,3 +1,4 @@
+
 #include <linux/slab.h>
 #include <linux/bcd.h>
 #include <linux/kernel.h>
@@ -59,18 +60,18 @@ typedef struct status {
 
 /* Funktionsdefinition */
 
-static ssize_t mein_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset);
+static ssize_t ds3231_read(struct file *file, char __user* puffer, size_t bytes, loff_t *offset);
 
-static ssize_t mein_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset);
+static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset);
 
-static int mein_open(struct inode *inode, struct file *file);
+static int ds3231_open(struct inode *inode, struct file *file);
 
-static int mein_close(struct inode *inode, struct file *file);
+static int ds3231_close(struct inode *inode, struct file *file);
 
 
 static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *id);
 
-static int mein_remove(struct i2c_client *client);
+static int ds3231_remove(struct i2c_client *client);
 
 static int date_check(ds3231_time_t* time);
 

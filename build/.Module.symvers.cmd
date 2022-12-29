@@ -1,0 +1,1 @@
+cmd_/home/sysprog-04/ds3231_treiber/build/Module.symvers := sed 's/\.ko$$/\.o/' /home/sysprog-04/ds3231_treiber/build/modules.order | scripts/mod/modpost -m -a  -o /home/sysprog-04/ds3231_treiber/build/Module.symvers -e -i Module.symvers   -T -
