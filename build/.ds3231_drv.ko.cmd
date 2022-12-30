@@ -1,1 +1,1 @@
-cmd_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.ko := ld -r -EL --build-id=sha1  -T scripts/module.lds -o /home/sysprog-04/ds3231_treiber/build/ds3231_drv.ko /home/sysprog-04/ds3231_treiber/build/ds3231_drv.o /home/sysprog-04/ds3231_treiber/build/ds3231_drv.mod.o;  true
+cmd_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.ko := ld -r -EL --build-id=sha1  -T scripts/module.lds -o /home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.ko /home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o /home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.mod.o;  true

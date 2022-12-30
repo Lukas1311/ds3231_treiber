@@ -1,8 +1,8 @@
-cmd_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o := gcc -Wp,-MMD,/home/sysprog-04/ds3231_treiber/build/.ds3231_drv.o.d -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/10/include -I./arch/arm/include -I./arch/arm/include/generated  -I./include -I./arch/arm/include/uapi -I./arch/arm/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -D__KERNEL__ -mlittle-endian -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mfpu=vfp -marm -Wa,-mno-warn-deprecated -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=1024 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-stack-clash-protection -pg -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned  -DMODULE  -DKBUILD_BASENAME='"ds3231_drv"' -DKBUILD_MODNAME='"ds3231_drv"' -D__KBUILD_MODNAME=kmod_ds3231_drv -c -o /home/sysprog-04/ds3231_treiber/build/ds3231_drv.o /home/sysprog-04/ds3231_treiber/ds3231_drv.c
+cmd_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o := gcc -Wp,-MMD,/home/sysprog-04/ds3231_Abgabe/build/.ds3231_drv.o.d -nostdinc -isystem /usr/lib/gcc/arm-linux-gnueabihf/10/include -I./arch/arm/include -I./arch/arm/include/generated  -I./include -I./arch/arm/include/uapi -I./arch/arm/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -include ./include/linux/compiler_types.h -D__KERNEL__ -mlittle-endian -fmacro-prefix-map=./= -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Wno-format-security -std=gnu89 -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mfpu=vfp -marm -Wa,-mno-warn-deprecated -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-frame-address -Wno-format-truncation -Wno-format-overflow -Wno-address-of-packed-member -O2 -fno-allow-store-data-races -Wframe-larger-than=1024 -fstack-protector-strong -Wimplicit-fallthrough=5 -Wno-main -Wno-unused-but-set-variable -Wno-unused-const-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-stack-clash-protection -pg -Wdeclaration-after-statement -Wvla -Wno-pointer-sign -Wno-stringop-truncation -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-restrict -Wno-maybe-uninitialized -fno-strict-overflow -fno-stack-check -fconserve-stack -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wno-packed-not-aligned  -DMODULE  -DKBUILD_BASENAME='"ds3231_drv"' -DKBUILD_MODNAME='"ds3231_drv"' -D__KBUILD_MODNAME=kmod_ds3231_drv -c -o /home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o /home/sysprog-04/ds3231_Abgabe/ds3231_drv.c
 
-source_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o := /home/sysprog-04/ds3231_treiber/ds3231_drv.c
+source_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o := /home/sysprog-04/ds3231_Abgabe/ds3231_drv.c
 
-deps_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o := \
+deps_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o := \
   include/linux/compiler-version.h \
     $(wildcard include/config/CC_VERSION_TEXT) \
   include/linux/kconfig.h \
@@ -17,7 +17,7 @@ deps_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o := \
     $(wildcard include/config/RETPOLINE) \
     $(wildcard include/config/ARCH_USE_BUILTIN_BSWAP) \
     $(wildcard include/config/KCOV) \
-  /home/sysprog-04/ds3231_treiber/ds3231_drv.h \
+  /home/sysprog-04/ds3231_Abgabe/ds3231_drv.h \
   include/linux/slab.h \
     $(wildcard include/config/DEBUG_SLAB) \
     $(wildcard include/config/DEBUG_OBJECTS) \
@@ -1261,6 +1261,6 @@ deps_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o := \
   include/uapi/linux/eventpoll.h \
   arch/arm/include/asm/delay.h \
 
-/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o: $(deps_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o)
+/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o: $(deps_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o)
 
-$(deps_/home/sysprog-04/ds3231_treiber/build/ds3231_drv.o):
+$(deps_/home/sysprog-04/ds3231_Abgabe/build/ds3231_drv.o):
