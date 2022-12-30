@@ -17,17 +17,15 @@
 
 #include "ds3231_drv.h"
 
-/* CHANGES HERE*/
-
 /*
  *File Operations für die Registrierung der Funktionen und das Modul
  */
 static struct file_operations ds3231_fops = {
-        .owner = THIS_MODULE,
-        .llseek = no_llseek,
-        .read = ds3231_read,
-        .write = ds3231_write,
-        .open = ds3231_open,
+        .owner   = THIS_MODULE,
+        .llseek  = no_llseek,
+        .read    = ds3231_read,
+        .write   = ds3231_write,
+        .open    = ds3231_open,
         .release = ds3231_close,
 };
 
@@ -36,16 +34,19 @@ static struct file_operations ds3231_fops = {
  * Das für den Treiber passendes Gerät mit der hier definierten Id wird
  * bei der Initialisierung des Moduls hinzugefügt.
  */
+
 static const struct i2c_device_id ds3231_dev_id[] = {
         { "ds3231_drv", 0 },
         { }
 };
+
 MODULE_DEVICE_TABLE(i2c, ds3231_dev_id);
 
 /*
  * I2C Treiber-Struktur. Wird für die Registrierung des Treibers im
  * Linux-Kernel benötigt.
  */
+
 static struct i2c_driver ds3231_driver = {
         .driver = {
                 .owner = THIS_MODULE,
@@ -55,7 +56,6 @@ static struct i2c_driver ds3231_driver = {
         .probe	  = ds3231_probe,
         .remove	  = ds3231_remove,
 };
-
 
 static int date_check(ds3231_time_t *time) {
     uint8_t val = 0;
@@ -79,7 +79,7 @@ static int date_check(ds3231_time_t *time) {
         int i = time->months;
         switch (i) {
             /*
-             * Wenn Februar, dann teste auf Schaltjahr, da days = 29;
+             * Wenn Februar, dann teste auf Schaltjahr, da days == 29;
              */
             case 2:
                 if ((time->years % 4 == 0) && ((time->years % 400 == 0) || (time->years % 100 != 0))) {
@@ -106,6 +106,7 @@ static int date_check(ds3231_time_t *time) {
 /*
  * Öffnet den Treiber
  */
+
 static int ds3231_open(struct inode *inode, struct file *file) {
     printk("DS3231_drv: ds3231_open aufgerufen\n");
     return 0;
@@ -114,6 +115,7 @@ static int ds3231_open(struct inode *inode, struct file *file) {
 /*
  * Schließt den Treiber
  */
+
 static int ds3231_close(struct inode *inode, struct file *file) {
     printk("DS3231_drv: ds3231_close aufgerufen\n");
     return 0;
@@ -122,6 +124,7 @@ static int ds3231_close(struct inode *inode, struct file *file) {
 /*
  * Gibt dem Nutzer die ausgelesene Uhrzeit zurück
  */
+
 static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes, loff_t *offset) {
     /* Zwischenspeicher für die Uhrzeit */
     uint8_t seconds, minutes, hours, days, months, ret, val;
@@ -148,7 +151,7 @@ static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes
     printk("DS3231_drv: ds3231_read aufgerufen\n");
 
     /* Reservierung des Datenbusses */
-    ret = spin_trylock(&the_lock);
+    ret = spin_trylock(&lock);
 
     /* Überprüfung, ob Datenbus besetzt */
     if (!ret) {
@@ -157,8 +160,8 @@ static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes
 
     /* Auslesung des Status */
     status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_STATUS);
-    status.osf = status.full & DS3231_OSFBIT;
-    status.bsy = status.full & DS3231_BSYBIT;
+    status.osf  = status.full & DS3231_OSFBIT;
+    status.bsy  = status.full & DS3231_BSYBIT;
     status.temp = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_TEMP);
 
     /* Überprüfung, ob Oszillator deaktiviert.
@@ -179,22 +182,22 @@ static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes
     /* Auslesen und Abspeicherung der Uhrzeit-Werte */
     seconds = i2c_smbus_read_byte_data(ds3231_client, DS3231_SECONDS);
     minutes = i2c_smbus_read_byte_data(ds3231_client, DS3231_MINUTES);
-    hours = i2c_smbus_read_byte_data(ds3231_client, DS3231_HOURS);
-    days = i2c_smbus_read_byte_data(ds3231_client, DS3231_DAYS);
-    months = i2c_smbus_read_byte_data(ds3231_client, DS3231_MONTHS);
-    years = i2c_smbus_read_byte_data(ds3231_client, DS3231_YEARS);
+    hours   = i2c_smbus_read_byte_data(ds3231_client, DS3231_HOURS);
+    days    = i2c_smbus_read_byte_data(ds3231_client, DS3231_DAYS);
+    months  = i2c_smbus_read_byte_data(ds3231_client, DS3231_MONTHS);
+    years   = i2c_smbus_read_byte_data(ds3231_client, DS3231_YEARS);
 
     /* Freigabe des Datenbusses */
-    spin_unlock(&the_lock);
+    spin_unlock(&lock);
 
     /* Darstellung von BCD → BIN */
     time.seconds = bcd2bin(seconds & DS3231_SECSBITS);
     time.minutes = bcd2bin(minutes & DS3231_MINSBITS);
-    time.days = bcd2bin(days & DS3231_DAYSBITS);
-    time.months = bcd2bin(months & DS3231_MONTHSBITS);
-    time.hours = bcd2bin(hours & DS3231_HRSBITS);
+    time.days    = bcd2bin(days & DS3231_DAYSBITS);
+    time.months  = bcd2bin(months & DS3231_MONTHSBITS);
+    time.hours   = bcd2bin(hours & DS3231_HRSBITS);
     /* +2000, damit Jahr richtig dargestellt wird */
-    time.years = bcd2bin(years & DS3231_YEARSBITS) + 2000;
+    time.years   = bcd2bin(years & DS3231_YEARSBITS) + 2000;
 
     /* Gültigkeitsprüfung des Datums */
     val = date_check(&time);
@@ -226,6 +229,7 @@ static ssize_t ds3231_read(struct file *file, char __user * puffer, size_t bytes
 /*
  * Liest Nutzereingaben und speichert die Eingaben in der jeweiligen Datenstruktur
  */
+
 static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t bytes, loff_t *offset) {
     /* Zwischenspeicher für die Uhrzeit */
     ds3231_time_t time;
@@ -268,14 +272,14 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
     /* Darstellung von BIN → BCD */
     time.seconds = bin2bcd(time.seconds);
     time.minutes = bin2bcd(time.minutes);
-    time.days = bin2bcd(time.days);
-    time.hours = bin2bcd(time.hours);
-    time.months = bin2bcd(time.months);
-    time.years = time.years - 2000;
-    time.years = bin2bcd(time.years);
+    time.days    = bin2bcd(time.days);
+    time.hours   = bin2bcd(time.hours);
+    time.months  = bin2bcd(time.months);
+    time.years   = time.years - 2000;
+    time.years   = bin2bcd(time.years);
 
     /* Reservierung des Datenbusses */
-    ret = spin_trylock(&the_lock);
+    ret = spin_trylock(&lock);
 
     if (!ret) {
         return -EBUSY;
@@ -283,8 +287,8 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
 
     /* Auslesung des Status */
     status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_STATUS);
-    status.osf = status.full & DS3231_OSFBIT;
-    status.bsy = status.full & DS3231_BSYBIT;
+    status.osf  = status.full & DS3231_OSFBIT;
+    status.bsy  = status.full & DS3231_BSYBIT;
 
     /* Überprüfung, ob Oszillator deaktiviert.
      * Wenn Oszillator deaktiviert, dann aktiviere ihn und gib Fehlermeldung aus.
@@ -310,7 +314,8 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
     i2c_smbus_write_byte_data(ds3231_client, DS3231_YEARS, time.years);
 
     /* Freigabe des Datenbusses */
-    spin_unlock(&the_lock);
+    spin_unlock(&lock);
+
     return bytes;
     }
 
@@ -330,14 +335,14 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
     /* Darstellung von BIN → BCD */
     time.seconds = bin2bcd(time.seconds);
     time.minutes = bin2bcd(time.minutes);
-    time.days = bin2bcd(time.days);
-    time.hours = bin2bcd(time.hours);
-    time.months = bin2bcd(time.months);
-    time.years = time.years - 2000;
-    time.years = bin2bcd(time.years);
+    time.days    = bin2bcd(time.days);
+    time.hours   = bin2bcd(time.hours);
+    time.months  = bin2bcd(time.months);
+    time.years   = time.years - 2000;
+    time.years   = bin2bcd(time.years);
 
     /* Reservierung des Datenbusses */
-    ret = spin_trylock(&the_lock);
+    ret = spin_trylock(&lock);
 
     if (!ret) {
         return -EBUSY;
@@ -345,8 +350,8 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
 
     /* Auslesung des Status */
     status.full = i2c_smbus_read_byte_data(ds3231_client, DS3231_REG_STATUS);
-    status.osf = status.full & DS3231_OSFBIT;
-    status.bsy = status.full & DS3231_BSYBIT;
+    status.osf  = status.full & DS3231_OSFBIT;
+    status.bsy  = status.full & DS3231_BSYBIT;
 
     /* Überprüfung, ob Oszillator deaktiviert.
      * Wenn Oszillator deaktiviert, dann aktiviere ihn und gib Fehlermeldung aus.
@@ -372,11 +377,10 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
     i2c_smbus_write_byte_data(ds3231_client, DS3231_YEARS, time.years);
 
     /* Freigabe des Datenbusses */
-    spin_unlock(&the_lock);
+    spin_unlock(&lock);
+
     return bytes;
 }
-
- /*CHANGES HERE*/
 
 /*
  * Initialisierung des Treibers und Devices.
@@ -384,6 +388,7 @@ static ssize_t ds3231_write(struct file *file, const char __user* puffer, size_t
  * Treiber passende Device-Information gefunden wurde. Innerhalb der Funktion
  * wird der Treiber und das Device initialisiert.
  */
+
 static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *id) {
     s32 reg0, reg1;
     u8 reg_cnt, reg_sts;
@@ -391,9 +396,7 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
 
     printk("DS3231_drv: ds3231_probe aufgerufen\n");
 
-    /* Control und Status Register auslesen.
-     */
-
+    /* Control und Status Register auslesen. */
     reg0 = i2c_smbus_read_byte_data(client, DS3231_REG_CONTROL);
     reg1 = i2c_smbus_read_byte_data(client, DS3231_REG_STATUS);
     if (reg0 < 0 || reg1 < 0) {
@@ -404,12 +407,12 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
     reg_sts = (u8) reg1;
     printk("DS3231_drv: Control: 0x%02X, Status: 0x%02X\n", reg_cnt, reg_sts);
 
-    /* Prüfen ob der Oscilattor abgeschaltet ist, falls ja, muss dieser
-     * eingeschltet werden (damit die Zeit läuft).
+    /* Prüfen, ob der Oszillator abgeschaltet ist, falls ja, muss dieser
+     * eingeschaltet werden (damit die Zeit läuft).
      */
 
     if (reg_cnt & DS3231_BIT_nEOSC) {
-        printk("DS3231_drv: Oscilator einschalten\n");
+        printk("DS3231_drv: Oszillator einschalten\n");
         reg_cnt &= ~DS3231_BIT_nEOSC;
     }
 
@@ -420,14 +423,14 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
 
     i2c_smbus_write_byte_data(client, DS3231_REG_CONTROL, reg_cnt);
 
-    /* Prüfe Oscilator zustand. Falls Fehler vorhanden, wird das Fehlerfalg
+    /* Prüfe Oszillatorzustand. Falls Fehler vorhanden, wird das Fehlerfalg
      * zurückgesetzt.
      */
 
     if (reg_sts & DS3231_BIT_OSF) {
         reg_sts &= ~DS3231_BIT_OSF;
         i2c_smbus_write_byte_data(client, DS3231_REG_STATUS, reg_sts);
-        printk("DS3231_drv: Oscilator Stop Flag (OSF) zurückgesetzt.\n");
+        printk("DS3231_drv: Oszillator Stop Flag (OSF) zurückgesetzt.\n");
     }
 
     /* Gerätenummer für das RTC-Gerät reservieren */
@@ -474,6 +477,7 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
 	cdev_del(&cds3231_device);
     unreg_chrdev:
 	unregister_chrdev_region(ds3231_device, 1);
+
     return -EIO;
 }
 
@@ -483,8 +487,8 @@ static int ds3231_probe(struct i2c_client *client, const struct i2c_device_id *i
  * von Linux-Kernel aufgerufen. Hier sollten die Ressourcen, welche
  * in der "ds3231_probe()" Funktion angefordert wurden, freigegeben.
  */
-static int ds3231_remove(struct i2c_client *client)
-{
+
+static int ds3231_remove(struct i2c_client *client) {
     printk("DS3231_drv: ds3231_remove aufgerufen\n");
     device_destroy(ds3231_device_class, ds3231_device);
     class_destroy(ds3231_device_class);
@@ -492,14 +496,15 @@ static int ds3231_remove(struct i2c_client *client)
     unregister_chrdev_region(ds3231_device, 1);
     return 0;
 }
+
 /*
  * Initialisierungsroutine des Kernel-Modules.
  * Wird beim Laden des Moduls aufgerufen. Innerhalb der Funktion
  * wird das neue Device (DS3231) registriert und der I2C Treiber
  * hinzugefügt.
  */
-static int __init ds3231_module_init(void)
-{
+
+static int __init ds3231_module_init(void) {
 	int ret;
 	struct i2c_adapter *adapter;
 
@@ -516,7 +521,7 @@ static int __init ds3231_module_init(void)
 	};
 
 	printk("DS3231_drv: ds3231_module_init aufgerufen\n");
-    spin_lock_init(&the_lock);
+    spin_lock_init(&lock);
 	ds3231_client = NULL;
 	adapter = i2c_get_adapter(1);
 	if(adapter == NULL) {
@@ -540,16 +545,16 @@ static int __init ds3231_module_init(void)
 	}
 	return ret;
 }
-module_init(ds3231_module_init);
 
+module_init(ds3231_module_init);
 
 /*
  * Aufräumroutine des Kernel-Modules.
  * Wird beim Entladen des Moduls aufgerufen. Innerhalb der Funktion
  * werden alle Ressourcen wieder freigegeben.
  */
-static void __exit ds3231_module_exit(void)
-{
+
+static void __exit ds3231_module_exit(void) {
 	printk("DS3231_drv: ds3231_module_exit aufgerufen\n");
 	if(ds3231_client != NULL) {
 		i2c_del_driver(&ds3231_driver);
@@ -557,10 +562,10 @@ static void __exit ds3231_module_exit(void)
         ds3231_client = NULL;
 	}
 }
-module_exit(ds3231_module_exit);
 
+module_exit(ds3231_module_exit);
 
 /* Module-Informationen. */
 MODULE_AUTHOR("Lukas Nils Lingmann uk083418@student.uni-kassel.de, Alexander Haar uk077258@stundent.uni-kassel.de");
-MODULE_DESCRIPTION("Beschreibung");
+MODULE_DESCRIPTION("RTC-Treiber für Labor Embedded Systems im Fachgebiet Rechnerarchitektur und Systemprogrammierung WS22/23");
 MODULE_LICENSE("GPL");
